@@ -74,48 +74,34 @@ def success():
 #######################
 
 
-@app.route("/_check", methods=["POST"])
+@app.route("/_check")
 def check():
-    """
-    User has submitted the form with a word ('attempt')
-    that should be formed from the jumble and on the
-    vocabulary list.  We respond depending on whether
-    the word is on the vocab list (therefore correctly spelled),
-    made only from the jumble letters, and not a word they
-    already found.
-    """
     app.logger.debug("Entering check")
 
-    # The data we need, from form and from cookie
-    text = flask.request.form["attempt"]
+    text = flask.request.args.get("text", "", type=str)
     jumble = flask.session["jumble"]
-    matches = flask.session.get("matches", [])  # Default to empty list
+    matches = flask.session.get("matches", [])
 
-    # Is it good?
     in_jumble = LetterBag(jumble).contains(text)
     matched = WORDS.has(text)
 
-    # Respond appropriately
-    if matched and in_jumble and not (text in matches):
-        # Cool, they found a new word
+    if matched and in_jumble and text not in matches:
         matches.append(text)
         flask.session["matches"] = matches
+        rslt = {"status": "new", "word": text}
     elif text in matches:
-        flask.flash("You already found {}".format(text))
+        rslt = {"status": "already", "word": text}
     elif not matched:
-        flask.flash("{} isn't in the list of words".format(text))
+        rslt = {"status": "not_in_list", "word": text}
     elif not in_jumble:
-        flask.flash(
-            '"{}" can\'t be made from the letters {}'.format(text, jumble))
+        rslt = {"status": "not_in_jumble", "word": text}
     else:
         app.logger.debug("This case shouldn't happen!")
         assert False  # Raises AssertionError
 
-    # Choose page:  Solved enough, or keep going?
-    if len(matches) >= flask.session["target_count"]:
-       return flask.redirect(flask.url_for("success"))
-    else:
-       return flask.redirect(flask.url_for("keep_going"))
+    rslt["done"] = len(matches) >= flask.session["target_count"]
+
+    return flask.jsonify(result=rslt)
 
 ###############
 # AJAX request handlers
@@ -131,6 +117,10 @@ def example():
     app.logger.debug("Got a JSON request")
     rslt = {"key": "value"}
     return flask.jsonify(result=rslt)
+
+@app.route("/_guess")
+def guess():
+    app.logger.debug("Got a JSON request")
 
 
 #################

@@ -1,49 +1,21 @@
-# proj3-JSA
-Vocabulary anagrams game for primary school English language learners (ELL)
+# Vocab Anagram (AJAX)
 
-## Overview
+A Flask word game: find words from the word list using only the letters in the jumble. Each keystroke is checked against the server with AJAX (jQuery), so the page never reloads.
 
-A simple anagram game designed for English-language learning students in elementary and middle school. Students are presented with a list of vocabulary words (taken from a text file) and an anagram. The anagram is a jumble of some number of vocabulary words, randomly chosen. Students attempt to type words that can be created from the jumble. When a matching word is typed, it is added to a list of solved words. 
+## Run
 
-The vocabulary word list is fixed for one invocation of the server, so multiple students connected to the same server will see the same vocabulary list but may  have different anagrams.
+From the `vocab/` folder:
 
-## Authors 
+```bash
+docker build -t jsa-vocab .
+docker run --rm -p 5000:5000 jsa-vocab
+```
 
-Initial version by M Young; Docker version added by R Durairajan; to be revised by CIS 322 students. 
+Then open http://localhost:5000.
 
-## Status
+## How it works
 
-flask_vocab.py and the template vocab.html are a 'skeleton' version of the anagram game for a CIS 322 project. They uses conventional interaction through a form, interacting only when the user submits the form. 
+- `vocab/flask_vocab.py`: the `/_check` route takes the typed text and returns JSON (`status`, `word`, `done`).
+- `vocab/templates/vocab.html`: jQuery sends the input to `/_check` on each keystroke and updates the page. When enough words are found, it goes to `/success`.
 
-## Minijax? 
-
-flask_minijax.py and templates/minijax.html are a tiny example of using JQuery with flask for an Ajax application. They should not be included in the version of the project you turn in. 
-
-# Tasks
-
-* Familiarize yourself with flask_vocab.py and flask_minijax.py by running them separately. You need to understand them to do this project.
-
-* Your task is to replace the form interaction (in flask_vocab.py) with AJAX interaction on each keystroke using flask_minijax.py. 
-
-* You will write your own Dockerfile (see examples provided in prior projects). Dockerfile should be placed inside vocab folder.
-
-* You will submit your credentials.ini in canvas. It should have information on how we should get your git repo (which should contain your Dockerfile). 
-
-## Grading Rubric
-
-* If your code works as expected: 100 points. This includes:
-	* AJAX in the frontend (vocab.html) 
-	* Logic in the backend (flask_vocab.py)
-	* Frontend to backend interaction (with correct requests/responses) between vocab.html and flask_vocab.py
-
-* If the JQuery logic is not working, 30 points will be docked off. 
-
-* If the html file (replacing the original form interaction, i.e., replacing the button with JQuery code) is wrong or is missing in the appropriate location, 30 points will be docked off.
-
-* If none of the functionalities work, 40 points will be given assuming 
-    * the credentials.ini is submitted with the correct URL of your repo, 
-    * the Dockerfile builds without any errors, and 
-    
-* If the Dockerfile doesn't build or is missing, 20 points will be docked off.
-
-* If credentials.ini is missing, 0 will be assigned.
+Author: Milo Reynolds
